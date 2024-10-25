@@ -119,14 +119,14 @@ def get_comments(video_ids):
                 comment_published_at = comment['publishedAt']
                 
                 datetime_str = comment_published_at[:-1]  
-                n = re.sub(r'T', ' ', datetime_str)  
+                published_date = re.sub(r'T', ' ', datetime_str)  
                 
                 comments.append({
                     'Comment_ID': comment_id,
                     'Video_ID': video_id,
                     'Comment_Text': comment_text,
                     'Comment_Author': comment_author,
-                    'Published_Date': n  
+                    'Published_Date': published_date
                 })
 
         except Exception as e:
@@ -223,7 +223,7 @@ if option == 'Migrade':
                 try:
                     channeldf.to_sql('channel', engine, if_exists='append', index=False)
                 except IntegrityError:
-                    st.warning(f"Channel ID {channel_id} is already exists. Skipping insertion.")
+                    st.warning(f"Channel ID: {channel_id} is already exists. Skip insertion.")
 
                 playlist_id = channel_data['Playlist_Id']
                 playlist_data = get_playlist_details(playlist_id)
@@ -236,7 +236,8 @@ if option == 'Migrade':
                     for video_id in video_ids:
                         video_data = get_video_details(youtube, video_id, playlist_id)
                         if video_data:
-                            videodf = pd.DataFrame([video_data])  
+                            videodf = pd.DataFrame([video_data])
+                            videodf.replace('N/A', 0, inplace=True)  
                             videodf.to_sql('video', engine, if_exists='append', index=False)
                     
                     comment_data = get_comments(video_ids)
@@ -400,3 +401,4 @@ if option == 'Question':
         st.title('Which videos have the highest number of comments, and what are their corresponding channel names?')
         data = query_no_10()
         st.dataframe(data)
+        
